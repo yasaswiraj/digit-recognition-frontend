@@ -18,18 +18,17 @@ export default function LoginGate({ apiUrl }: { apiUrl: string }) {
   useEffect(() => {
     try {
       let device = localStorage.getItem("device_id");
-  if (!device) {
+      if (!device) {
         // generate UUID for this device
-        device = (globalThis.crypto && (globalThis.crypto as any).randomUUID)
-          ? (globalThis.crypto as any).randomUUID()
-          : `dev-${Math.random().toString(36).slice(2, 10)}`;
-          localStorage.setItem("device_id", String(device));
+        const cryptoObj = (globalThis as unknown as { crypto?: { randomUUID?: () => string } }).crypto;
+        device = cryptoObj?.randomUUID ? cryptoObj.randomUUID() : `dev-${Math.random().toString(36).slice(2, 10)}`;
+        localStorage.setItem("device_id", String(device));
       }
       const savedUb = localStorage.getItem("ubname");
       const token = localStorage.getItem("auth_token");
       if (savedUb) setUbname(savedUb);
       if (token && savedUb) setLoggedIn(true);
-    } catch (e) {
+    } catch {
       // ignore storage errors
     }
   }, []);
@@ -40,9 +39,8 @@ export default function LoginGate({ apiUrl }: { apiUrl: string }) {
     setLoading(true);
     setError(null);
     try {
-      const generated = (globalThis.crypto && (globalThis.crypto as any).randomUUID)
-        ? (globalThis.crypto as any).randomUUID()
-        : `dev-${Math.random().toString(36).slice(2, 10)}`;
+      const cryptoObj = (globalThis as unknown as { crypto?: { randomUUID?: () => string } }).crypto;
+      const generated = cryptoObj?.randomUUID ? cryptoObj.randomUUID() : `dev-${Math.random().toString(36).slice(2, 10)}`;
       const device_id: string = localStorage.getItem("device_id") ?? generated;
 
       const payload = {
@@ -70,8 +68,9 @@ export default function LoginGate({ apiUrl }: { apiUrl: string }) {
       localStorage.setItem("ubname", ubname);
       localStorage.setItem("device_id", device_id);
       setLoggedIn(true);
-    } catch (err: any) {
-      setError(err?.message || String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     } finally {
       setLoading(false);
     }

@@ -37,9 +37,12 @@ export default function LeaderboardPage() {
           throw new Error(txt || resp.statusText);
         }
         const data = await resp.json();
-        if (mounted) setStats(data);
-      } catch (err: any) {
-        if (mounted) setError(err?.message || String(err));
+        if (mounted) setStats(data as StatItem[]);
+      } catch (err: unknown) {
+        if (mounted) {
+          const message = err instanceof Error ? err.message : String(err);
+          setError(message);
+        }
       } finally {
         if (mounted) setLoading(false);
       }

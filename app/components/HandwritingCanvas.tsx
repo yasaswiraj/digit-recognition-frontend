@@ -58,7 +58,7 @@ export default function HandwritingCanvas({ apiUrl }: { apiUrl: string }) {
     });
   }
 
-  function handlePointerUp(e: React.PointerEvent) {
+  function handlePointerUp() {
     if (!isDrawing) return;
     setIsDrawing(false);
     if (currentStroke) {
@@ -172,8 +172,9 @@ export default function HandwritingCanvas({ apiUrl }: { apiUrl: string }) {
         throw new Error("No prediction returned from classifier");
       }
       setResult({ label: labelNum, confidence: data.confidence });
-    } catch (err: any) {
-      setError(err?.message || String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     } finally {
       setLoading(false);
     }
